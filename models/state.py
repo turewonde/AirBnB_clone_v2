@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """Defines the State class."""
 import models
-from os import getenv
+import os
 from models.base_model import Base
 from models.base_model import BaseModel
 from models.city import City
@@ -18,16 +18,20 @@ class State(BaseModel, Base):
         name (sqlalchemy String): The name of the State.
         cities (sqlalchemy relationship): The State-City relationship.
     """
-    __tablename__ = "states"
-    name = Column(String(128), nullable=False)
-    cities = relationship("City",  backref="state", cascade="delete")
+    __tablename__ = 'states'
+    if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+        name = Column(String(128), nullable=False)
+        cities = relationship("City", passive_deletes=True, backref="state")
+    else:
+        name = ""
 
-    if getenv("HBNB_TYPE_STORAGE") != "db":
         @property
         def cities(self):
-            """Get a list of all related City objects."""
-            city_list = []
-            for city in list(models.storage.all(City).values()):
+            """
+            """
+            cities_dict = models.storage.all('City')
+            cities_list = []
+            for city in cities_dict.values():
                 if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+                    cities_list.append(city)
+            return cities_list
